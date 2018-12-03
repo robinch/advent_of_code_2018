@@ -1,4 +1,4 @@
-defmodule Solution do
+defmodule Day1 do
   def part_1() do
     number_list_from_file("input.txt")
     |> Enum.sum()
