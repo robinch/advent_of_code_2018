@@ -2,15 +2,9 @@ defmodule Day3.Part1 do
   def solve() do
     File.stream!("input.txt")
     |> Stream.map(&String.replace(&1, "\n", ""))
-    |> Stream.map(fn claim ->
-      [_, _, position_string, dimension_string] = String.split(claim)
-      {clean_position(position_string), clean_dimensions(dimension_string)}
-    end)
+    |> to_cleaned_stream()
     |> to_collision_map()
-    |> Enum.reduce(0, fn
-      {_index, :collision}, nr_of_claimed -> nr_of_claimed + 1
-      {_index, _status}, nr_of_claimed -> nr_of_claimed
-    end)
+    |> count_collisions()
   end
 
   def clean_id(id_string) do
@@ -32,6 +26,13 @@ defmodule Day3.Part1 do
     |> List.to_tuple()
   end
 
+  def to_cleaned_stream(uncleaned_stream) do
+    Stream.map(uncleaned_stream, fn claim ->
+      [_, _, position_string, dimension_string] = String.split(claim)
+      {clean_position(position_string), clean_dimensions(dimension_string)}
+    end)
+  end
+
   def to_collision_map(collision_map) do
     Enum.reduce(collision_map, %{}, fn {{start_x, start_y}, {width, height}}, map ->
       Enum.reduce(start_x..(start_x + width - 1), map, fn x, acc ->
@@ -39,6 +40,13 @@ defmodule Day3.Part1 do
           Map.update(map, {x, y}, :claimed, fn _claimed -> :collision end)
         end)
       end)
+    end)
+  end
+
+  def count_collisions(collision_map) do
+    Enum.reduce(collision_map, 0, fn
+      {_index, :collision}, nr_of_claimed -> nr_of_claimed + 1
+      {_index, _status}, nr_of_claimed -> nr_of_claimed
     end)
   end
 end
