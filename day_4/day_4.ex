@@ -1,4 +1,4 @@
-defmodule Day4.Part1 do
+defmodule Day4 do
   def solve() do
     File.stream!("input.txt")
     |> format_input()
