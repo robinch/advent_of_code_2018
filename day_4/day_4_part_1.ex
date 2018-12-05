@@ -2,25 +2,64 @@ defmodule Day4.Part1 do
   def solve() do
     File.stream!("input.txt")
     |> format_input()
-    |> Enum.sort(fn {date1, _}, {date2, _} -> date1 < date2 end)
-    |> Enum.reduce({_guard = 0, _fell_asleep = 0, %{}}, fn
-      input = {_date, "Guard #" <> action}, {_guard, fell_asleep, sleep_tracker} ->
+    |> get_guard_sleep_tabel()
+    |> guard_with_most_sleep()
+    |> get_most_occurred_sleep_time()
+    |> give_answer()
+  end
+
+  def solve_part_2() do
+    File.stream!("input.txt")
+    |> format_input()
+    |> get_guard_sleep_tabel()
+    |> Enum.map(&get_most_occurred_sleep_time/1)
+    |> Enum.max_by(fn {_id, {_minute, sleep_time}} -> sleep_time end)
+    |> give_answer_part_2()
+  end
+
+  def give_answer_part_2({id, {minute, _sleep_time}}), do: id * minute
+
+  def give_answer({id, {slept_most_at, _sleep_time}}) do
+    id * slept_most_at
+  end
+
+  def guard_with_most_sleep(sleep_table) do
+    Enum.max_by(sleep_table, fn {_id, time_table} ->
+      Enum.reduce(time_table, 0, fn {fell_asleep, woke_up}, total_sleep ->
+        total_sleep + woke_up - fell_asleep
+      end)
+    end)
+  end
+
+  def get_most_occurred_sleep_time({id, sleep_schedule}) do
+    most_sleep_occurred_at =
+      Enum.reduce(sleep_schedule, %{}, fn {fell_asleep, woke_up}, sleep_time_occurance ->
+        Enum.reduce(fell_asleep..(woke_up - 1), sleep_time_occurance, fn sleep_time,
+                                                                         sleep_time_occurance ->
+          Map.update(sleep_time_occurance, sleep_time, 1, fn times -> times + 1 end)
+        end)
+      end)
+      |> Enum.max_by(fn {_time, occurances} ->
+        occurances
+      end)
+
+    {id, most_sleep_occurred_at}
+  end
+
+  def get_guard_sleep_tabel(sorted_guard_schedule) do
+    Enum.reduce(sorted_guard_schedule, {_guard = 0, _fell_asleep = 0, %{}}, fn
+      {_date, "Guard #" <> action}, {_guard, fell_asleep, sleep_tracker} ->
         new_guard = get_guard_id(action)
 
         {new_guard, fell_asleep, sleep_tracker}
 
-      # |> IO.inspect(label: "new guard: #{elem(input, 0)}")
-
-      input = {date, "falls asleep"}, {guard, _fell_asleep, sleep_tracker} ->
+      {date, "falls asleep"}, {guard, _fell_asleep, sleep_tracker} ->
         fell_asleep_at = get_time(date)
 
         {guard, fell_asleep_at, sleep_tracker}
 
-      # |> IO.inspect(label: "falls asleep #{elem(input, 0)}")
-
-      input = {date, "wakes up"}, {guard, fell_asleep, sleep_tracker} ->
+      {date, "wakes up"}, {guard, fell_asleep, sleep_tracker} ->
         wakes_up_at = get_time(date)
-
         tracked_sleep = {fell_asleep, wakes_up_at}
 
         updated_sleep_tracker =
@@ -29,43 +68,8 @@ defmodule Day4.Part1 do
           end)
 
         {guard, fell_asleep, updated_sleep_tracker}
-        # |> IO.inspect(label: "wakes up #{elem(input, 0)}")
     end)
     |> elem(2)
-    |> Enum.max_by(fn {_id, time_table} ->
-      Enum.reduce(time_table, 0, fn {fell_asleep, woke_up}, total_sleep ->
-        total_sleep = total_sleep + woke_up - fell_asleep
-      end)
-    end)
-    |> get_most_occurred_sleep_time()
-    |> give_answer()
-
-    # |> Enum.max_by(fn {_id, sleep_time} -> sleep_time end)
-
-    # |> Enum.to_list()
-  end
-
-  def give_answer({id, slept_most_at}) do
-    id * slept_most_at
-  end
-
-  def get_most_occurred_sleep_time(what = {id, sleep_schedule}) do
-    IO.inspect(what, lable: "what!")
-
-    most_sleep_occurred_at =
-      Enum.reduce(sleep_schedule, %{}, fn {fell_asleep, woke_up}, sleep_time_occurance ->
-        Enum.reduce(fell_asleep..(woke_up - 1), sleep_time_occurance, fn sleep_time,
-                                                                         sleep_time_occurance ->
-          Map.update(sleep_time_occurance, sleep_time, 1, fn times -> times + 1 end)
-        end)
-      end)
-      # |> IO.inspect(label: "sleep")
-      |> Enum.max_by(fn {time, occurances} ->
-        occurances
-      end)
-      |> elem(0)
-
-    {id, most_sleep_occurred_at}
   end
 
   def get_guard_id(action) do
@@ -79,6 +83,7 @@ defmodule Day4.Part1 do
   def format_input(input) do
     input
     |> Stream.map(&to_date_string_and_action/1)
+    |> Enum.sort(fn {date1, _}, {date2, _} -> date1 < date2 end)
   end
 
   def to_date_string_and_action(line) do
@@ -100,5 +105,5 @@ defmodule Day4.Part1 do
   end
 end
 
-Day4.Part1.solve()
+Day4.Part1.solve_part_2()
 |> IO.inspect()
