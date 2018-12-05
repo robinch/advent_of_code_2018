@@ -17,13 +17,13 @@ defmodule Day4.Part1 do
     |> give_answer_part_2()
   end
 
-  def give_answer_part_2({id, {minute, _sleep_time}}), do: id * minute
+  defp give_answer_part_2({id, {minute, _sleep_time}}), do: id * minute
 
-  def give_answer({id, {slept_most_at, _sleep_time}}) do
+  defp give_answer({id, {slept_most_at, _sleep_time}}) do
     id * slept_most_at
   end
 
-  def guard_with_most_sleep(sleep_table) do
+  defp guard_with_most_sleep(sleep_table) do
     Enum.max_by(sleep_table, fn {_id, time_table} ->
       Enum.reduce(time_table, 0, fn {fell_asleep, woke_up}, total_sleep ->
         total_sleep + woke_up - fell_asleep
@@ -31,7 +31,7 @@ defmodule Day4.Part1 do
     end)
   end
 
-  def get_most_occurred_sleep_time({id, sleep_schedule}) do
+  defp get_most_occurred_sleep_time({id, sleep_schedule}) do
     most_sleep_occurred_at =
       Enum.reduce(sleep_schedule, %{}, fn {fell_asleep, woke_up}, sleep_time_occurance ->
         Enum.reduce(fell_asleep..(woke_up - 1), sleep_time_occurance, fn sleep_time,
@@ -72,21 +72,21 @@ defmodule Day4.Part1 do
     |> elem(2)
   end
 
-  def get_guard_id(action) do
+  defp get_guard_id(action) do
     String.split(action) |> hd |> String.to_integer()
   end
 
-  def get_time(date) do
+  defp get_time(date) do
     String.slice(date, -2, String.length(date)) |> String.to_integer()
   end
 
-  def format_input(input) do
+  defp format_input(input) do
     input
     |> Stream.map(&to_date_string_and_action/1)
     |> Enum.sort(fn {date1, _}, {date2, _} -> date1 < date2 end)
   end
 
-  def to_date_string_and_action(line) do
+  defp to_date_string_and_action(line) do
     {date_string, action_string} =
       String.replace(line, "\n", "")
       |> String.split_at(18)
@@ -94,7 +94,7 @@ defmodule Day4.Part1 do
     {to_date(date_string), String.trim(action_string)}
   end
 
-  def to_date(date_string) do
+  defp to_date(date_string) do
     date_string
     |> String.slice(1, 16)
 
@@ -104,6 +104,3 @@ defmodule Day4.Part1 do
     # |> elem(1)
   end
 end
-
-Day4.Part1.solve_part_2()
-|> IO.inspect()
