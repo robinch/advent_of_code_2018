@@ -1,11 +1,11 @@
 defmodule Day4 do
-  def solve() do
+  def solve_part_1() do
     File.stream!("input.txt")
     |> format_input()
     |> get_guard_sleep_tabel()
     |> guard_with_most_sleep()
     |> get_most_occurred_sleep_time()
-    |> give_answer()
+    |> give_answer_part_1()
   end
 
   def solve_part_2() do
@@ -19,9 +19,7 @@ defmodule Day4 do
 
   defp give_answer_part_2({id, {minute, _sleep_time}}), do: id * minute
 
-  defp give_answer({id, {slept_most_at, _sleep_time}}) do
-    id * slept_most_at
-  end
+  defp give_answer_part_1({id, {slept_most_at, _sleep_time}}), do: id * slept_most_at
 
   defp guard_with_most_sleep(sleep_table) do
     Enum.max_by(sleep_table, fn {_id, time_table} ->
